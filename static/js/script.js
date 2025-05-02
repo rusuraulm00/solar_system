@@ -36,14 +36,14 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     const planetSizes = {
-        mercury: 4,
-        venus: 8,
-        earth: 8.5,
-        mars: 6,
-        jupiter: 20,
-        saturn: 18,
-        uranus: 12,
-        neptune: 12
+        mercury: 16,
+        venus: 32,
+        earth: 34,
+        mars: 24,
+        jupiter: 80,
+        saturn: 72,
+        uranus: 48,
+        neptune: 48
     };
 
     // Orbital periods in seconds (for animation)
