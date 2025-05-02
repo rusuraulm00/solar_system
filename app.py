@@ -11,9 +11,11 @@ def load_planet_data():
             with open(planets_file, 'r') as file:
                 return json.load(file)
         except json.JSONDecodeError:
-            pass
-
-        return {
+             print("Invalid JSON in planets.json. Rewriting with default data.")
+    else:
+        print("planets.json is empty. Writing default data.")
+        
+        default_data = {
             "mercury": {
                 "name": "Mercury",
                 "type": "planet",
@@ -113,6 +115,10 @@ def load_planet_data():
                 "color": "#ffd700"
             }
         }
+    with open(planets_file,'w') as file:
+        json.dump(default_data, file, indent=2)
+    
+    return default_data
 
 @app.route('/')
 def index():
