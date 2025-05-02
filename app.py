@@ -6,10 +6,13 @@ app = Flask(__name__)
 
 def load_planet_data():
     planets_file = os.path.join(app.static_folder,'data','planets.json')
-    if os.path.exists(planets_file):
-        with open(planets_file, 'r') as file:
-            return json.load(file)
-    else:
+    if os.path.exists(planets_file) and os.path.getsize(planets_file) > 0:
+        try:
+            with open(planets_file, 'r') as file:
+                return json.load(file)
+        except json.JSONDecodeError:
+            pass
+
         return {
             "mercury": {
                 "name": "Mercury",
@@ -134,11 +137,10 @@ if __name__ == '__main__':
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
 
-    # Create planets.json if it doesn't exist
+    planets_data = load_planet_data()
     planets_file = os.path.join(data_dir, 'planets.json')
-    if not os.path.exists(planets_file):
-        with open(planets_file, 'w') as f:
-            json.dump(load_planet_data(), f, indent=2)
+    with open(planets_file, 'w') as f:
+        json.dump(planets_data, f, indent=2)
 
     app.run(debug=True)
 

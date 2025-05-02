@@ -1,12 +1,17 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Add console logging for debugging
+    console.log('Solar system script loaded');
+
     // Get the container dimensions
     const solarSystem = document.getElementById('solar-system');
     const containerWidth = solarSystem.clientWidth;
     const containerHeight = solarSystem.clientHeight;
+    console.log('Container dimensions:', containerWidth, containerHeight);
+
     const minDimension = Math.min(containerWidth, containerHeight);
 
-    // Set scale factor for orbit sizes
-    const orbitScale = minDimension / 2200;
+    // Set scale factor for orbit sizes - adjust for better visibility
+    const orbitScale = minDimension / 1800;
 
     // Set the sun radius based on container size
     const sunRadius = Math.max(20, minDimension * 0.05);
@@ -55,10 +60,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Fetch celestial body data from the backend
     fetch('/api/celestial_bodies')
-        .then(response => response.json())
+        .then(response => {
+            console.log('API response status:', response.status);
+            return response.json();
+        })
         .then(data => {
             // Store the data globally
             window.celestialBodies = data;
+            console.log('Celestial bodies data loaded:', data);
 
             // Create the solar system
             createSolarSystem();
@@ -66,10 +75,122 @@ document.addEventListener('DOMContentLoaded', function() {
             // Start the animation
             animatePlanets();
         })
-        .catch(error => console.error('Error fetching celestial body data:', error));
+        .catch(error => {
+            console.error('Error fetching celestial body data:', error);
+            // Use hardcoded fallback data in case API fails
+            window.celestialBodies = getDefaultCelestialData();
+            createSolarSystem();
+            animatePlanets();
+        });
+
+    // Function to provide default celestial data if API fails
+    function getDefaultCelestialData() {
+        return {
+            "mercury": {
+                "name": "Mercury",
+                "type": "planet",
+                "description": "The smallest and innermost planet in the Solar System.",
+                "distance": "57.9 million km",
+                "diameter": "4,880 km",
+                "orbit_period": "88 Earth days",
+                "day_length": "58.6 Earth days",
+                "color": "#b5b5b5"
+            },
+            "venus": {
+                "name": "Venus",
+                "type": "planet",
+                "description": "The second planet from the Sun and the hottest planet in our solar system.",
+                "distance": "108.2 million km",
+                "diameter": "12,104 km",
+                "orbit_period": "225 Earth days",
+                "day_length": "243 Earth days",
+                "color": "#e6e6b8"
+            },
+            "earth": {
+                "name": "Earth",
+                "type": "planet",
+                "description": "Our home planet and the only known celestial body to harbor life.",
+                "distance": "149.6 million km",
+                "diameter": "12,742 km",
+                "orbit_period": "365.25 days",
+                "day_length": "24 hours",
+                "color": "#6b93d6"
+            },
+            "mars": {
+                "name": "Mars",
+                "type": "planet",
+                "description": "The fourth planet from the Sun, often called the 'Red Planet'.",
+                "distance": "227.9 million km",
+                "diameter": "6,779 km",
+                "orbit_period": "687 Earth days",
+                "day_length": "24.6 hours",
+                "color": "#c1440e"
+            },
+            "asteroid_belt": {
+                "name": "Asteroid Belt",
+                "type": "asteroid_belt",
+                "description": "A region of space between Mars and Jupiter containing numerous asteroids.",
+                "distance": "300-600 million km",
+                "width": "~150 million km",
+                "estimated_objects": "Over 1 million objects larger than 1 km"
+            },
+            "jupiter": {
+                "name": "Jupiter",
+                "type": "planet",
+                "description": "The largest planet in our solar system and the fifth from the Sun.",
+                "distance": "778.5 million km",
+                "diameter": "139,820 km",
+                "orbit_period": "11.86 Earth years",
+                "day_length": "9.93 hours",
+                "color": "#c3a992"
+            },
+            "saturn": {
+                "name": "Saturn",
+                "type": "planet",
+                "description": "The sixth planet from the Sun, famous for its beautiful ring system.",
+                "distance": "1.4 billion km",
+                "diameter": "116,460 km",
+                "orbit_period": "29.46 Earth years",
+                "day_length": "10.7 hours",
+                "color": "#e3e0c0"
+            },
+            "uranus": {
+                "name": "Uranus",
+                "type": "planet",
+                "description": "The seventh planet from the Sun and the first discovered with a telescope.",
+                "distance": "2.9 billion km",
+                "diameter": "50,724 km",
+                "orbit_period": "84 Earth years",
+                "day_length": "17.2 hours",
+                "color": "#c1f0f6"
+            },
+            "neptune": {
+                "name": "Neptune",
+                "type": "planet",
+                "description": "The eighth and farthest known planet from the Sun.",
+                "distance": "4.5 billion km",
+                "diameter": "49,244 km",
+                "orbit_period": "165 Earth years",
+                "day_length": "16.1 hours",
+                "color": "#5089d6"
+            },
+            "sun": {
+                "name": "Sun",
+                "type": "star",
+                "description": "The star at the center of our Solar System.",
+                "diameter": "1,392,700 km",
+                "mass": "1.989 × 10^30 kg",
+                "temperature": "5,500°C (surface), 15,000,000°C (core)",
+                "age": "~4.6 billion years",
+                "color": "#ffd700"
+            }
+        };
+    }
 
     // Function to create the solar system elements
     function createSolarSystem() {
+        console.log('Creating solar system');
+
         // Create the sun
         const sun = document.createElement('div');
         sun.className = 'celestial-body sun';
@@ -83,8 +204,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add click event to the sun
         sun.addEventListener('click', () => showCelestialBodyInfo('sun'));
 
+        console.log('Sun created');
+
         // Create orbit paths and planets
         for (const [planetId, distance] of Object.entries(orbitalDistances)) {
+            console.log(`Creating ${planetId} at distance ${distance}`);
+
             if (planetId === 'asteroid_belt') {
                 createAsteroidBelt(distance * orbitScale);
                 continue;
@@ -96,6 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
             orbit.style.width = `${distance * 2 * orbitScale}px`;
             orbit.style.height = `${distance * 2 * orbitScale}px`;
             solarSystem.appendChild(orbit);
+            console.log(`Created orbit for ${planetId}`);
 
             // Skip creating planet if it's the asteroid belt
             if (planetId === 'asteroid_belt') continue;
@@ -121,8 +247,9 @@ document.addEventListener('DOMContentLoaded', function() {
             planet.style.top = `${y}px`;
 
             // Set planet color
-            const planetColor = window.celestialBodies[planetId].color || '#ffffff';
+            const planetColor = window.celestialBodies[planetId]?.color || '#ffffff';
             planet.style.backgroundColor = planetColor;
+            console.log(`Planet ${planetId} color: ${planetColor}`);
 
             // Store orbit data for animation
             planet.dataset.orbitRadius = orbitRadius;
@@ -133,6 +260,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Add click event to the planet
             planet.addEventListener('click', () => showCelestialBodyInfo(planetId));
+            console.log(`Created planet ${planetId}`);
         }
     }
 

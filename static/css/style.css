@@ -53,9 +53,10 @@ header p {
     position: absolute;
     top: 50%;
     left: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;
     transform: translate(-50%, -50%);
+    z-index: 5;
 }
 
 .celestial-body {
@@ -64,16 +65,19 @@ header p {
     transform: translate(-50%, -50%);
     cursor: pointer;
     transition: box-shadow 0.3s ease;
+    z-index: 10;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 .celestial-body:hover {
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.9);
+    z-index: 20;
 }
 
 .sun {
     background: radial-gradient(circle at 30% 30%, #fff9a3, #ffc200, #ff4500);
     box-shadow: 0 0 60px rgba(255, 165, 0, 0.6);
-    z-index: 10;
+    z-index: 15;
 }
 
 .asteroid-belt {
