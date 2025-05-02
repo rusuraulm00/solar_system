@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Solar System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Our Solar System</h1>
+            <p>Click on any celestial body to learn more about it</p>
+        </header>
+
+        <div class="solar-system-container">
+            <div id="solar-system">
+                <!-- Sun will be added dynamically -->
+                <!-- Planets will be added dynamically -->
+                <!-- Asteroid belt will be added dynamically -->
+            </div>
+        </div>
+
+        <div id="info-panel" class="hidden">
+            <button id="close-info">×</button>
+            <h2 id="body-name">Planet Name</h2>
+            <div id="body-details">
+                <!-- Body details will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
