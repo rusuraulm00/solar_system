@@ -1,0 +1,294 @@
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the container dimensions
+    const solarSystem = document.getElementById('solar-system');
+    const containerWidth = solarSystem.clientWidth;
+    const containerHeight = solarSystem.clientHeight;
+    const minDimension = Math.min(containerWidth, containerHeight);
+
+    // Set scale factor for orbit sizes
+    const orbitScale = minDimension / 2200;
+
+    // Set the sun radius based on container size
+    const sunRadius = Math.max(20, minDimension * 0.05);
+
+    // Cache DOM elements we'll need frequently
+    const infoPanel = document.getElementById('info-panel');
+    const bodyName = document.getElementById('body-name');
+    const bodyDetails = document.getElementById('body-details');
+    const closeInfoBtn = document.getElementById('close-info');
+
+    // Planet data with relative sizes and orbital distances (not to scale but visually pleasing)
+    const orbitalDistances = {
+        mercury: 120,
+        venus: 180,
+        earth: 240,
+        mars: 300,
+        asteroid_belt: 400,  // Middle of the belt
+        jupiter: 500,
+        saturn: 600,
+        uranus: 700,
+        neptune: 800
+    };
+
+    const planetSizes = {
+        mercury: 4,
+        venus: 8,
+        earth: 8.5,
+        mars: 6,
+        jupiter: 20,
+        saturn: 18,
+        uranus: 12,
+        neptune: 12
+    };
+
+    // Orbital periods in seconds (for animation)
+    const orbitalPeriods = {
+        mercury: 20,
+        venus: 30,
+        earth: 40,
+        mars: 60,
+        jupiter: 100,
+        saturn: 140,
+        uranus: 200,
+        neptune: 280
+    };
+
+    // Fetch celestial body data from the backend
+    fetch('/api/celestial_bodies')
+        .then(response => response.json())
+        .then(data => {
+            // Store the data globally
+            window.celestialBodies = data;
+
+            // Create the solar system
+            createSolarSystem();
+
+            // Start the animation
+            animatePlanets();
+        })
+        .catch(error => console.error('Error fetching celestial body data:', error));
+
+    // Function to create the solar system elements
+    function createSolarSystem() {
+        // Create the sun
+        const sun = document.createElement('div');
+        sun.className = 'celestial-body sun';
+        sun.style.width = `${sunRadius * 2}px`;
+        sun.style.height = `${sunRadius * 2}px`;
+        sun.style.left = '50%';
+        sun.style.top = '50%';
+        sun.setAttribute('data-id', 'sun');
+        solarSystem.appendChild(sun);
+
+        // Add click event to the sun
+        sun.addEventListener('click', () => showCelestialBodyInfo('sun'));
+
+        // Create orbit paths and planets
+        for (const [planetId, distance] of Object.entries(orbitalDistances)) {
+            if (planetId === 'asteroid_belt') {
+                createAsteroidBelt(distance * orbitScale);
+                continue;
+            }
+
+            // Create orbit
+            const orbit = document.createElement('div');
+            orbit.className = 'orbit';
+            orbit.style.width = `${distance * 2 * orbitScale}px`;
+            orbit.style.height = `${distance * 2 * orbitScale}px`;
+            solarSystem.appendChild(orbit);
+
+            // Skip creating planet if it's the asteroid belt
+            if (planetId === 'asteroid_belt') continue;
+
+            // Create planet
+            const planet = document.createElement('div');
+            planet.className = 'celestial-body';
+            planet.id = planetId;
+            planet.setAttribute('data-id', planetId);
+
+            // Set planet size
+            const planetSize = planetSizes[planetId] * orbitScale * 2;
+            planet.style.width = `${planetSize}px`;
+            planet.style.height = `${planetSize}px`;
+
+            // Set initial position
+            const angle = Math.random() * Math.PI * 2; // Random starting position
+            const orbitRadius = distance * orbitScale;
+            const x = orbitRadius * Math.cos(angle) + containerWidth / 2;
+            const y = orbitRadius * Math.sin(angle) + containerHeight / 2;
+
+            planet.style.left = `${x}px`;
+            planet.style.top = `${y}px`;
+
+            // Set planet color
+            const planetColor = window.celestialBodies[planetId].color || '#ffffff';
+            planet.style.backgroundColor = planetColor;
+
+            // Store orbit data for animation
+            planet.dataset.orbitRadius = orbitRadius;
+            planet.dataset.angle = angle;
+            planet.dataset.speed = 2 * Math.PI / (orbitalPeriods[planetId] * 60); // Angular velocity
+
+            solarSystem.appendChild(planet);
+
+            // Add click event to the planet
+            planet.addEventListener('click', () => showCelestialBodyInfo(planetId));
+        }
+    }
+
+    // Function to create the asteroid belt
+    function createAsteroidBelt(radius) {
+        // Belt width
+        const beltWidth = 50 * orbitScale;
+        const innerRadius = radius - (beltWidth / 2);
+        const outerRadius = radius + (beltWidth / 2);
+
+        // Create a clickable ring for the asteroid belt
+        const clickableBelt = document.createElement('div');
+        clickableBelt.className = 'clickable-belt';
+        clickableBelt.style.width = `${outerRadius * 2}px`;
+        clickableBelt.style.height = `${outerRadius * 2}px`;
+        clickableBelt.style.borderRadius = '50%';
+        clickableBelt.style.border = `${beltWidth}px solid rgba(255, 255, 255, 0.05)`;
+        clickableBelt.setAttribute('data-id', 'asteroid_belt');
+        solarSystem.appendChild(clickableBelt);
+
+        // Add click event to the asteroid belt
+        clickableBelt.addEventListener('click', () => showCelestialBodyInfo('asteroid_belt'));
+
+        // Create asteroid belt with individual asteroids
+        const asteroidBelt = document.createElement('div');
+        asteroidBelt.className = 'asteroid-belt';
+        solarSystem.appendChild(asteroidBelt);
+
+        // Create individual asteroids
+        const numAsteroids = Math.floor(radius / 2);
+        for (let i = 0; i < numAsteroids; i++) {
+            const asteroid = document.createElement('div');
+            asteroid.className = 'asteroid';
+
+            // Random position within the belt
+            const asteroidRadius = innerRadius + Math.random() * beltWidth;
+            const angle = Math.random() * Math.PI * 2;
+            const x = asteroidRadius * Math.cos(angle);
+            const y = asteroidRadius * Math.sin(angle);
+
+            asteroid.style.left = `${x}px`;
+            asteroid.style.top = `${y}px`;
+
+            // Random size
+            const size = Math.random() * 2 + 1;
+            asteroid.style.width = `${size}px`;
+            asteroid.style.height = `${size}px`;
+
+            asteroidBelt.appendChild(asteroid);
+        }
+    }
+
+    // Function to animate the planets
+    function animatePlanets() {
+        const center = {
+            x: containerWidth / 2,
+            y: containerHeight / 2
+        };
+
+        // Get all planets
+        const planets = document.querySelectorAll('.celestial-body:not(.sun)');
+
+        // Animation function
+        function animate() {
+            planets.forEach(planet => {
+                if (planet.id === 'asteroid_belt') return;
+
+                // Get orbit data
+                const radius = parseFloat(planet.dataset.orbitRadius);
+                let angle = parseFloat(planet.dataset.angle);
+                const speed = parseFloat(planet.dataset.speed);
+
+                // Update angle
+                angle += speed;
+                if (angle > Math.PI * 2) angle -= Math.PI * 2;
+
+                // Calculate new position
+                const x = center.x + radius * Math.cos(angle);
+                const y = center.y + radius * Math.sin(angle);
+
+                // Update planet position
+                planet.style.left = `${x}px`;
+                planet.style.top = `${y}px`;
+
+                // Store updated angle
+                planet.dataset.angle = angle;
+            });
+
+            // Continue animation
+            requestAnimationFrame(animate);
+        }
+
+        // Start animation
+        animate();
+    }
+
+    // Function to show celestial body information
+    function showCelestialBodyInfo(bodyId) {
+        const body = window.celestialBodies[bodyId];
+
+        if (!body) {
+            console.error('Celestial body not found:', bodyId);
+            return;
+        }
+
+        // Set the name
+        bodyName.textContent = body.name;
+
+        // Clear previous details
+        bodyDetails.innerHTML = '';
+
+        // Add description
+        const descriptionDiv = document.createElement('div');
+        descriptionDiv.className = 'body-description';
+        descriptionDiv.textContent = body.description;
+        bodyDetails.appendChild(descriptionDiv);
+
+        // Add all other properties except name, type, description and color
+        for (const [key, value] of Object.entries(body)) {
+            if (['name', 'type', 'description', 'color'].includes(key)) continue;
+
+            const row = document.createElement('div');
+            row.className = 'detail-row';
+
+            const label = document.createElement('div');
+            label.className = 'detail-label';
+            label.textContent = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+            const valueElement = document.createElement('div');
+            valueElement.className = 'detail-value';
+            valueElement.textContent = value;
+
+            row.appendChild(label);
+            row.appendChild(valueElement);
+            bodyDetails.appendChild(row);
+        }
+
+        // Show the panel
+        infoPanel.classList.remove('hidden');
+    }
+
+    // Close the info panel when clicking the close button
+    closeInfoBtn.addEventListener('click', function() {
+        infoPanel.classList.add('hidden');
+    });
+
+    // Close the info panel when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target === infoPanel) {
+            infoPanel.classList.add('hidden');
+        }
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', function() {
+        // Reload the page to recreate the solar system with new dimensions
+        location.reload();
+    });
+});
